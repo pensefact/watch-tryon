@@ -121,7 +121,7 @@ def run_video_pipeline(
 
             render_dir = Path(tmp_dir) / f"render_{i:06d}"
             passes = render_watch(scaled_mesh_path, placement, render_dir, image_size=(w, h))
-            composited = composite_watch(frame, passes, placement)
+            composited = composite_watch(frame, passes, placement, watch_spec.case_diameter_mm)
             cv2.imwrite(str(frame_dir / f"{i:06d}.png"), composited)
 
         # --- Encode to video ---

@@ -25,6 +25,11 @@ class WristLandmarks:
 
 
 def detect_wrist(image: np.ndarray) -> WristLandmarks:
+    if mp_hands is None:
+        raise RuntimeError(
+            "MediaPipe Hands API not available. Install mediapipe<1.0 or use a Python 3.11-3.12 environment."
+        )
+
     h, w = image.shape[:2]
 
     with mp_hands.Hands(static_image_mode=True, max_num_hands=1, min_detection_confidence=0.5) as hands:

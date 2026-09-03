@@ -27,13 +27,36 @@ def place_and_rotate(
     return canvas
 
 
+def _scale_passes(passes: RenderPasses, watch_diameter_mm: float, placement: PlacementSpec) -> RenderPasses:
+    """Resize the render passes so the watch occupies the physically correct pixel size."""
+    current_width = passes.color.shape[1]
+    target_width_px = watch_diameter_mm * placement.px_per_mm
+    scale = target_width_px / current_width
+
+    def resize(img: np.ndarray) -> np.ndarray:
+        h, w = img.shape[:2]
+        new_w = max(1, round(w * scale))
+        new_h = max(1, round(h * scale))
+        interpolation = cv2.INTER_AREA if scale < 1.0 else cv2.INTER_LINEAR
+        return cv2.resize(img, (new_w, new_h), interpolation=interpolation)
+
+    return RenderPasses(
+        color=resize(passes.color),
+        shadow=resize(passes.shadow),
+        mask=resize(passes.mask),
+    )
+
+
 def composite_watch(
     background: np.ndarray,
     passes: RenderPasses,
     placement: PlacementSpec,
+    watch_diameter_mm: float,
 ) -> np.ndarray:
     bh, bw = background.shape[:2]
     result = background.copy()
+
+    passes = _scale_passes(passes, watch_diameter_mm, placement)
 
     # Place color pass
     placed_color = place_and_rotate(passes.color, (bh, bw), placement)

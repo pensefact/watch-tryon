@@ -57,6 +57,6 @@ def run_still_pipeline(
     # --- Composition ---
     h, w = wrist_image.shape[:2]
     passes = render_watch(scaled_mesh_path, placement, output_dir / "renders", image_size=(w, h))
-    result = composite_watch(wrist_image, passes, placement)
+    result = composite_watch(wrist_image, passes, placement, watch_spec.case_diameter_mm)
 
     return result
