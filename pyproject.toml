@@ -1,0 +1,10 @@
+[project]
+name = "watch-tryon"
+version = "0.1.0"
+description = "Watch virtual try-on POC"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_mode = "auto"
