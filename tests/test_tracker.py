@@ -38,4 +38,8 @@ def test_filter_independent_per_instance():
     f2 = OneEuroFilter(min_cutoff=1.0, beta=0.0)
     f1(0.0, 100.0)
     f2(0.0, 200.0)
-    assert abs(f1(0.033, 105.0) - f2(0.033, 205.0)) < 1.0
+    # Both filters get the same relative input (+5), so their outputs should
+    # differ by exactly the seed difference (100). This verifies no shared state.
+    r1 = f1(0.033, 105.0)
+    r2 = f2(0.033, 205.0)
+    assert abs((r1 - r2) - (100.0 - 200.0)) < 1.0
