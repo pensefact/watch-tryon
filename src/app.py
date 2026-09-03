@@ -102,7 +102,7 @@ def try_on_video(
 
     # SAM 2 video predictor
     from sam2.build_sam import build_sam2_video_predictor
-    video_predictor = build_sam2_video_predictor("sam2_hiera_small.yaml", "sam2_hiera_small.pt")
+    video_predictor = build_sam2_video_predictor("configs/sam2.1/sam2.1_hiera_s.yaml", "sam2_hiera_small.pt")
 
     output_path = OUTPUT_DIR / f"{watch_reference}_tryon.mp4"
     run_video_pipeline(
@@ -131,12 +131,12 @@ def _load_sam_predictor():
         from sam2.build_sam import build_sam2
         from sam2.sam2_image_predictor import SAM2ImagePredictor
 
-        sam_model = build_sam2("sam2_hiera_small.yaml", "sam2_hiera_small.pt")
+        sam_model = build_sam2("configs/sam2.1/sam2.1_hiera_s.yaml", "sam2_hiera_small.pt")
         _sam_predictor_cache = SAM2ImagePredictor(sam_model)
         return _sam_predictor_cache
     except ImportError:
         raise gr.Error(
-            "SAM 2 not installed. Run: pip install segment-anything-2 "
+            "SAM 2 not installed. Run: pip install sam2 "
             "and download sam2_hiera_small.pt"
         )
 
