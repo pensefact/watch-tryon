@@ -102,7 +102,9 @@ def try_on_video(
 
     # SAM 2 video predictor
     from sam2.build_sam import build_sam2_video_predictor
-    video_predictor = build_sam2_video_predictor("configs/sam2.1/sam2.1_hiera_s.yaml", "sam2_hiera_small.pt")
+    import torch
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    video_predictor = build_sam2_video_predictor("configs/sam2/sam2_hiera_s.yaml", "sam2_hiera_small.pt", device=device)
 
     output_path = OUTPUT_DIR / f"{watch_reference}_tryon.mp4"
     run_video_pipeline(
@@ -131,7 +133,9 @@ def _load_sam_predictor():
         from sam2.build_sam import build_sam2
         from sam2.sam2_image_predictor import SAM2ImagePredictor
 
-        sam_model = build_sam2("configs/sam2.1/sam2.1_hiera_s.yaml", "sam2_hiera_small.pt")
+        import torch
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        sam_model = build_sam2("configs/sam2/sam2_hiera_s.yaml", "sam2_hiera_small.pt", device=device)
         _sam_predictor_cache = SAM2ImagePredictor(sam_model)
         return _sam_predictor_cache
     except ImportError:

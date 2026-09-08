@@ -20,18 +20,21 @@ def load_and_scale_mesh(mesh_path: Path, spec: WatchSpec) -> trimesh.Trimesh:
     # Center at origin
     mesh.vertices -= mesh.bounding_box.centroid
 
-    # Scale each axis independently to match real-world dimensions
     current_extents = mesh.bounding_box.extents
-    target_extents = np.array([
-        spec.case_diameter_mm,  # X = width
-        spec.lug_to_lug_mm,    # Y = height
-        spec.thickness_mm,     # Z = depth
-    ])
+
+    # Sort mesh axes by extent size and match to watch dimensions sorted by size:
+    # thinnest mesh axis → thickness, middle → diameter, tallest → lug-to-lug
+    axis_order = np.argsort(current_extents)  # [thinnest, middle, tallest]
+    target_sorted = np.sort([spec.thickness_mm, spec.case_diameter_mm, spec.lug_to_lug_mm])
+
+    target_extents = np.zeros(3)
+    for rank, axis_idx in enumerate(axis_order):
+        target_extents[axis_idx] = target_sorted[rank]
 
     scale_factors = target_extents / current_extents
     mesh.vertices *= scale_factors
 
-    # Re-center after scaling (floating point drift)
+    # Re-center after scaling
     mesh.vertices -= mesh.bounding_box.centroid
 
     return mesh

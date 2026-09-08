@@ -9,3 +9,5 @@ build/
 .cache/
 *.blend1
 outputs/
+cache/
+checkpoints/

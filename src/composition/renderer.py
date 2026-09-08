@@ -36,16 +36,43 @@ bpy.ops.import_scene.gltf(filepath=r"{mesh_path}")
 # Get imported objects
 watch_objects = [obj for obj in bpy.context.scene.objects if obj.type == 'MESH']
 
-# Camera setup
+# Apply a dark metallic material to watch objects
+for obj in watch_objects:
+    mat = bpy.data.materials.new(name="WatchMetal")
+    mat.use_nodes = True
+    bsdf = mat.node_tree.nodes["Principled BSDF"]
+    bsdf.inputs["Base Color"].default_value = (0.05, 0.05, 0.06, 1.0)
+    bsdf.inputs["Metallic"].default_value = 0.9
+    bsdf.inputs["Roughness"].default_value = 0.3
+    if obj.data.materials:
+        obj.data.materials[0] = mat
+    else:
+        obj.data.materials.append(mat)
+
+# Camera setup — orthographic, framed tight on the watch
 cam_data = bpy.data.cameras.new(name='Camera')
-cam_data.lens = 28  # typical phone focal length
+cam_data.type = 'ORTHO'
+# Ortho scale = world units visible. Watch is ~50mm lug-to-lug, add margin.
+bbox = None
+for obj in watch_objects:
+    b = [obj.matrix_world @ mathutils.Vector(c) for c in obj.bound_box]
+    for v in b:
+        if bbox is None:
+            bbox = [list(v), list(v)]
+        else:
+            for i in range(3):
+                bbox[0][i] = min(bbox[0][i], v[i])
+                bbox[1][i] = max(bbox[1][i], v[i])
+import mathutils
+if bbox:
+    extent = max(bbox[1][0]-bbox[0][0], bbox[1][1]-bbox[0][1])
+    cam_data.ortho_scale = extent * 1.2
+else:
+    cam_data.ortho_scale = 60
 cam_obj = bpy.data.objects.new('Camera', cam_data)
 scene.collection.objects.link(cam_obj)
 scene.camera = cam_obj
-
-# Position camera to look at watch from dial side
-import mathutils
-cam_obj.location = (0, 0, 80)
+cam_obj.location = (0, 0, 100)
 cam_obj.rotation_euler = (0, 0, 0)
 
 # Lighting
@@ -60,8 +87,22 @@ light_obj.rotation_euler = (
     0,
 )
 
-# Use Cycles for quality (EEVEE as fallback)
-scene.render.engine = 'BLENDER_EEVEE_NEXT'
+# Fill light from opposite side
+fill_data = bpy.data.lights.new(name='Fill', type='SUN')
+fill_data.energy = 1.5
+fill_obj = bpy.data.objects.new('Fill', fill_data)
+scene.collection.objects.link(fill_obj)
+fill_obj.rotation_euler = (
+    math.atan2(light_dir[1], light_dir[2]),
+    math.atan2(-light_dir[0], light_dir[2]),
+    0,
+)
+
+# Use EEVEE for fast rendering (compatible across Blender versions)
+try:
+    scene.render.engine = 'BLENDER_EEVEE_NEXT'
+except TypeError:
+    scene.render.engine = 'BLENDER_EEVEE'
 
 output_dir = r"{output_dir}"
 
