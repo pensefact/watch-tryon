@@ -4,6 +4,7 @@ Deterministic compose → Generate (fal.ai Flux + IP-Adapter) → Evaluate (Clau
 → Adjust parameters → Loop until brand-accurate + naturally integrated.
 """
 import base64
+import gc
 import json
 import math
 import os
@@ -308,7 +309,7 @@ Guidelines for parameter adjustments:
 - Don't suggest changes larger than ±0.1 for strength or ±0.1 for ip_adapter_scale per iteration"""
 
     response = client.messages.create(
-        model="claude-sonnet-4-20250514",
+        model="claude-sonnet-5",
         max_tokens=1024,
         messages=[{
             "role": "user",
@@ -526,6 +527,11 @@ def main():
     watch_cx = landmarks.wrist_point[0] + fore_dir[0] * shift_px
     watch_cy = landmarks.wrist_point[1] + fore_dir[1] * shift_px
     print(f"  Watch center: ({watch_cx:.0f}, {watch_cy:.0f})")
+
+    # Free SAM2 + MediaPipe before the memory-heavy loop
+    del sam_model, predictor, segment, wrist_rgb
+    gc.collect()
+    print("  Freed detection models")
 
     # --- Step 3: Composite ---
     print("\n=== Compositing ===")
